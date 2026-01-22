@@ -246,6 +246,88 @@
             font-weight: bold;
         }
 
+        .formula-section {
+            margin-top: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .formula-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .formula-toggle:hover {
+            background-color: #e9ecef;
+        }
+
+        .formula-toggle::after {
+            content: '▶';
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .formula-section.expanded .formula-toggle::after {
+            transform: rotate(90deg);
+        }
+
+        .formula-content {
+            display: none;
+            padding: 16px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .formula-section.expanded .formula-content {
+            display: block;
+        }
+
+        .formula-content h4 {
+            margin: 0 0 8px 0;
+            color: #34495e;
+        }
+
+        .formula-content p {
+            margin: 0 0 12px 0;
+        }
+
+        .formula-content code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .formula-content .example {
+            background-color: #e8f6f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+        }
+
+        .formula-content .example h5 {
+            margin: 0 0 8px 0;
+            color: #27ae60;
+        }
+
+        .formula-content ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .formula-content li {
+            margin-bottom: 4px;
+        }
+
         .comparison-calculator {
             background: white;
             border-radius: 8px;
@@ -302,6 +384,9 @@
         .diff-negative {
             color: #ffcccc;
         }
+        #formulaSection {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -312,6 +397,43 @@
             <div class="calculator">
                 <h2>HYSA Interest Calculator</h2>
                 <p>Calculate the interest earned on a High Yield Savings Account.</p>
+                <div class="formula-section" id="formulaSection">
+                    <div class="formula-toggle" onclick="toggleFormula()">
+                        How are these numbers calculated?
+                    </div>
+                    <div class="formula-content">
+                        <h4>Monthly Compound Interest</h4>
+                        <p>This calculator uses <strong>monthly compounding</strong>, which means interest is calculated and added to your balance once per month.</p>
+
+                        <h4>Step-by-Step Calculation</h4>
+                        <ol>
+                            <li><strong>Convert annual rate to monthly rate:</strong><br>
+                                <code>Monthly Rate = Annual Rate ÷ 12</code><br>
+                                (e.g., 4.5% annual = 0.375% monthly)
+                            </li>
+                            <li><strong>Each month, calculate interest earned:</strong><br>
+                                <code>Interest = Current Balance × Monthly Rate</code>
+                            </li>
+                            <li><strong>Add interest to balance:</strong><br>
+                                <code>New Balance = Current Balance + Interest</code>
+                            </li>
+                            <li><strong>Repeat for next month</strong> using the new balance (this is why it's called "compound" interest—you earn interest on your interest)</li>
+                        </ol>
+
+                        <div class="example">
+                            <h5>Example: $10,000 at 4.5% APY</h5>
+                            <ul>
+                                <li>Monthly rate: 4.5% ÷ 12 = 0.375% = 0.00375</li>
+                                <li>Month 1: $10,000 × 0.00375 = <strong>$37.50</strong> interest</li>
+                                <li>New balance: $10,037.50</li>
+                                <li>Month 2: $10,037.50 × 0.00375 = <strong>$37.64</strong> interest</li>
+                                <li>New balance: $10,075.14</li>
+                                <li>...and so on</li>
+                            </ul>
+                            <p style="margin-bottom:0;"><em>Notice Month 2 earns $0.14 more than Month 1—that's compound interest at work!</em></p>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="form-group">
                     <label for="principal">Principal Amount ($)</label>
@@ -458,6 +580,11 @@
         function toggleYear(year) {
             const yearTable = document.getElementById('year-' + year);
             yearTable.classList.toggle('expanded');
+        }
+
+        function toggleFormula() {
+            const formulaSection = document.getElementById('formulaSection');
+            formulaSection.classList.toggle('expanded');
         }
 
         function formatCurrency(amount) {
