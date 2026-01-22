@@ -112,6 +112,89 @@
         .result-value {
             font-weight: 600;
         }
+
+        .year-tables {
+            margin-top: 20px;
+        }
+
+        .year-table {
+            margin-bottom: 24px;
+        }
+
+        .year-table h3 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        th:first-child, td:first-child {
+            text-align: center;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .year-summary {
+            background-color: #e8f6f3;
+            font-weight: 600;
+        }
+
+        .year-summary td {
+            color: #27ae60;
+        }
+
+        .total-summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .total-summary h3 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-item .label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .summary-item .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -131,57 +214,103 @@
             <input type="number" id="rate" placeholder="4.5" min="0" step="0.01">
         </div>
 
-        <div class="form-group">
-            <label for="months">Time Period (months)</label>
-            <input type="number" id="months" placeholder="12" min="1" step="1">
-        </div>
+        <button onclick="calculateInterest()">Calculate 5-Year Projection</button>
 
-        <button onclick="calculateInterest()">Calculate</button>
-
-        <div class="results" id="results">
-            <div class="result-row">
-                <span class="result-label">Principal:</span>
-                <span class="result-value" id="result-principal"></span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Monthly Interest (compounded):</span>
-                <span class="result-value" id="result-monthly-rate"></span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Final Balance:</span>
-                <span class="result-value" id="result-balance"></span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Interest Earned:</span>
-                <span class="result-value" id="result-interest"></span>
-            </div>
-        </div>
+        <div class="results" id="results"></div>
     </div>
 
     <script>
         function calculateInterest() {
             const principal = parseFloat(document.getElementById('principal').value);
             const annualRate = parseFloat(document.getElementById('rate').value);
-            const months = parseInt(document.getElementById('months').value);
 
-            if (isNaN(principal) || isNaN(annualRate) || isNaN(months)) {
+            if (isNaN(principal) || isNaN(annualRate)) {
                 alert('Please fill in all fields with valid numbers.');
                 return;
             }
 
-            // Monthly compounding formula: A = P(1 + r/n)^(nt)
-            // where n = 12 (monthly), t = months/12
             const monthlyRate = annualRate / 100 / 12;
-            const finalBalance = principal * Math.pow(1 + monthlyRate, months);
-            const interestEarned = finalBalance - principal;
+            const resultsContainer = document.getElementById('results');
 
-            // Display results
-            document.getElementById('result-principal').textContent = formatCurrency(principal);
-            document.getElementById('result-monthly-rate').textContent = (monthlyRate * 100).toFixed(4) + '%';
-            document.getElementById('result-balance').textContent = formatCurrency(finalBalance);
-            document.getElementById('result-interest').textContent = formatCurrency(interestEarned);
+            let html = '<div class="year-tables">';
+            let balance = principal;
+            let totalInterest = 0;
 
-            document.getElementById('results').classList.add('show');
+            // Generate 5 years of tables
+            for (let year = 1; year <= 5; year++) {
+                let yearInterest = 0;
+                const yearStartBalance = balance;
+
+                html += `
+                    <div class="year-table">
+                        <h3>Year ${year}</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Starting Balance</th>
+                                    <th>Interest Earned</th>
+                                    <th>Ending Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                for (let month = 1; month <= 12; month++) {
+                    const startBalance = balance;
+                    const monthInterest = balance * monthlyRate;
+                    balance += monthInterest;
+                    yearInterest += monthInterest;
+                    totalInterest += monthInterest;
+
+                    html += `
+                        <tr>
+                            <td>${month}</td>
+                            <td>${formatCurrency(startBalance)}</td>
+                            <td>${formatCurrency(monthInterest)}</td>
+                            <td>${formatCurrency(balance)}</td>
+                        </tr>
+                    `;
+                }
+
+                html += `
+                            <tr class="year-summary">
+                                <td>Total</td>
+                                <td>${formatCurrency(yearStartBalance)}</td>
+                                <td>${formatCurrency(yearInterest)}</td>
+                                <td>${formatCurrency(balance)}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            // Add total summary
+            html += `
+                <div class="total-summary">
+                    <h3>5-Year Summary</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="label">Starting Principal</div>
+                            <div class="value">${formatCurrency(principal)}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Total Interest Earned</div>
+                            <div class="value">${formatCurrency(totalInterest)}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Final Balance</div>
+                            <div class="value">${formatCurrency(balance)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+            resultsContainer.classList.add('show');
         }
 
         function formatCurrency(amount) {
