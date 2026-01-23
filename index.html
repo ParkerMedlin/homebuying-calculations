@@ -402,35 +402,33 @@
                         How are these numbers calculated?
                     </div>
                     <div class="formula-content">
-                        <h4>Monthly Compound Interest</h4>
-                        <p>This calculator uses <strong>monthly compounding</strong>, which means interest is calculated and added to your balance once per month.</p>
+                        <h4>Daily Compound Interest</h4>
+                        <p>This calculator uses <strong>daily compounding</strong>, which means interest is calculated and added to your balance every day. You earn interest on your interest!</p>
 
                         <h4>Step-by-Step Calculation</h4>
                         <ol>
-                            <li><strong>Convert annual rate to monthly rate:</strong><br>
-                                <code>Monthly Rate = Annual Rate ÷ 12</code><br>
-                                (e.g., 4.5% annual = 0.375% monthly)
+                            <li><strong>Convert annual rate to daily rate:</strong><br>
+                                <code>Daily Rate = Annual Rate ÷ 365</code><br>
+                                (e.g., 3.65% annual = 0.01% daily)
                             </li>
-                            <li><strong>Each month, calculate interest earned:</strong><br>
-                                <code>Interest = Current Balance × Monthly Rate</code>
+                            <li><strong>Each day, calculate interest earned:</strong><br>
+                                <code>Interest = Current Balance × Daily Rate</code>
                             </li>
                             <li><strong>Add interest to balance:</strong><br>
                                 <code>New Balance = Current Balance + Interest</code>
                             </li>
-                            <li><strong>Repeat for next month</strong> using the new balance (this is why it's called "compound" interest—you earn interest on your interest)</li>
+                            <li><strong>Repeat daily</strong>—each day's interest is slightly more than the last because your balance grew</li>
                         </ol>
 
                         <div class="example">
-                            <h5>Example: $10,000 at 4.5% APY</h5>
+                            <h5>Example: $10,000 at 3.65%</h5>
                             <ul>
-                                <li>Monthly rate: 4.5% ÷ 12 = 0.375% = 0.00375</li>
-                                <li>Month 1: $10,000 × 0.00375 = <strong>$37.50</strong> interest</li>
-                                <li>New balance: $10,037.50</li>
-                                <li>Month 2: $10,037.50 × 0.00375 = <strong>$37.64</strong> interest</li>
-                                <li>New balance: $10,075.14</li>
-                                <li>...and so on</li>
+                                <li>Daily rate: 3.65% ÷ 365 = 0.01% = 0.0001</li>
+                                <li>Day 1: $10,000 × 0.0001 = $1.00 interest</li>
+                                <li>Day 2: $10,001 × 0.0001 = $1.0001 interest</li>
+                                <li>After 1 year: $10,000 × (1.0001)^365 = <strong>$10,371.70</strong></li>
                             </ul>
-                            <p style="margin-bottom:0;"><em>Notice Month 2 earns $0.14 more than Month 1—that's compound interest at work!</em></p>
+                            <p style="margin-bottom:0;"><em>Total interest after 1 year: ~$371.70 (vs. $365 with simple interest—the extra $6.70 is from compounding!)</em></p>
                         </div>
                     </div>
                 </div>
@@ -492,17 +490,19 @@
                 return;
             }
 
-            const monthlyRate = annualRate / 100 / 12;
+            // Daily compounding: interest calculated and added every day
+            const dailyRate = annualRate / 100 / 365;
+            const daysPerMonth = 365 / 12; // ~30.4167 days
             const resultsContainer = document.getElementById('results');
 
             let html = '<div class="year-tables">';
-            let balance = principal;
             let totalInterest = 0;
 
             // Generate 5 years of tables
             for (let year = 1; year <= 5; year++) {
+                const yearStartDay = (year - 1) * 365;
+                const yearStartBalance = principal * Math.pow(1 + dailyRate, yearStartDay);
                 let yearInterest = 0;
-                const yearStartBalance = balance;
 
                 html += `
                     <div class="year-table" id="year-${year}">
@@ -519,9 +519,11 @@
                 `;
 
                 for (let month = 1; month <= 12; month++) {
-                    const startBalance = balance;
-                    const monthInterest = balance * monthlyRate;
-                    balance += monthInterest;
+                    const monthStartDay = yearStartDay + (month - 1) * daysPerMonth;
+                    const monthEndDay = yearStartDay + month * daysPerMonth;
+                    const startBalance = principal * Math.pow(1 + dailyRate, monthStartDay);
+                    const endBalance = principal * Math.pow(1 + dailyRate, monthEndDay);
+                    const monthInterest = endBalance - startBalance;
                     yearInterest += monthInterest;
                     totalInterest += monthInterest;
 
@@ -530,10 +532,12 @@
                             <td>${month}</td>
                             <td>${formatCurrency(startBalance)}</td>
                             <td>${formatCurrency(monthInterest)}</td>
-                            <td>${formatCurrency(balance)}</td>
+                            <td>${formatCurrency(endBalance)}</td>
                         </tr>
                     `;
                 }
+
+                const yearEndBalance = principal * Math.pow(1 + dailyRate, year * 365);
 
                 html += `
                             </tbody>
@@ -542,7 +546,7 @@
                                     <td>Year ${year}</td>
                                     <td>${formatCurrency(yearStartBalance)}</td>
                                     <td>${formatCurrency(yearInterest)}</td>
-                                    <td>${formatCurrency(balance)}</td>
+                                    <td>${formatCurrency(yearEndBalance)}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -553,6 +557,7 @@
             html += '</div>';
 
             // Add total summary
+            const finalBalance = principal * Math.pow(1 + dailyRate, 5 * 365);
             html += `
                 <div class="total-summary">
                     <h3>5-Year Summary</h3>
@@ -567,7 +572,7 @@
                         </div>
                         <div class="summary-item">
                             <div class="label">Final Balance</div>
-                            <div class="value">${formatCurrency(balance)}</div>
+                            <div class="value">${formatCurrency(finalBalance)}</div>
                         </div>
                     </div>
                 </div>
